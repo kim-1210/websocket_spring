@@ -24,7 +24,7 @@ public class ChatSocketHandler extends TextWebSocketHandler {
     @Override // 웹 소켓 연결시
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         sessions.put(session.getId(), session);
-        
+
         JSONObject message = new JSONObject();
         message.put("action", "newConnect");
         message.put("sender", session.getId());
@@ -32,7 +32,9 @@ public class ChatSocketHandler extends TextWebSocketHandler {
 
         for (WebSocketSession s : sessions.values()) {
             if (!(s.getId().equals(session.getId()))) {
-                s.sendMessage(new TextMessage("Hi " + message.toString() + "!"));
+                JSONObject responseJson = new JSONObject();
+                responseJson.put("data", "Hi " + message.toString() + "!");
+                s.sendMessage(new TextMessage(responseJson.toString()));
             }
         }
     }
@@ -41,9 +43,12 @@ public class ChatSocketHandler extends TextWebSocketHandler {
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         String payload = message.getPayload();
         JSONObject jsonObject = new JSONObject(payload);
-        
+
         for (WebSocketSession s : sessions.values()) {
-            s.sendMessage(new TextMessage(jsonObject.getString("data")));
+            JSONObject responseJson = new JSONObject();
+            responseJson.put("data", jsonObject.getString("data"));
+            responseJson.put("id", jsonObject.getString("id"));
+            s.sendMessage(new TextMessage(responseJson.toString()));
         }
     }
 
